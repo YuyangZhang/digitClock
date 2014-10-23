@@ -1,0 +1,210 @@
+<html>
+    <head>
+        <title>Canvas Study.</title>
+        <script type="text/javascript" src="digit.js"></script>
+        <style type="text/css">
+            canvas{
+                display:block;
+                margin:50px auto;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas" width="1024" height="512">
+        </canvas>
+        <script type="text/javascript">
+            
+            var FRflag=1;
+            var FGflag=1;
+            var FBflag=1;
+            var myFillStyleStr="";
+            var step=3;
+            var balls=[]; 
+            const colors = ["#33B5E5","#0099CC","#AA66CC","#9933CC","#99CC00","#669900","#FFBB33","#FF8800","#FF4444","#CC0000"];
+            var FillStyle = {
+                r: 30,
+                g:40,
+                b:255,
+                changeX: function(){
+                    if((this.r+step>255&&FRflag==1)||(this.r-step<0&&FRflag==-1)){
+                        FRflag*=-1;
+                    }
+                    this.r+=step*FRflag;
+                    myFillStyleStr= "rgb("+this.r+","+this.g+","+this.b+")";
+                },
+                changeY: function(){
+                    
+                    if((this.g+step>255&&FGflag==1)||(this.g-step<0&&FGflag==-1)){
+                        FGflag*=-1;
+                    }
+                    this.g+=step*FGflag;
+                    myFillStyleStr= "rgb("+this.r+","+this.g+","+this.b+")";
+                },
+                changeZ: function(){
+                    
+                    if((this.b+step>255&&FBflag==1)||(this.b-step<0&&FBflag==-1)){
+                        FBflag*=-1;
+                    }
+                    this.b+=step*FBflag;
+                    myFillStyleStr= "rgb("+this.r+","+this.g+","+this.b+")";
+                }
+            };
+            var myFillStyle=Object.create(FillStyle);
+            var radius=6;
+            var canvas=document.getElementById("canvas");
+            var context=canvas.getContext('2d');
+            var curDate=0;
+            var curHour=0;
+            var curMinute=0;
+            var curSecond=0;
+            window.onload=function(){
+                if(context){
+                    setInterval(function(){
+                        render(context);
+                        update();
+                    }, 50);
+                }
+                else{
+                    alert("Your browser doesn't support canvas.");
+                }
+            }
+            
+            function render(context){
+                var myDate=new Date();
+                var hour=myDate.getHours();
+                var minute=myDate.getMinutes();
+                var second=myDate.getSeconds();
+                context.clearRect(0,0,1024,512);
+                var xcoord=50;
+                renderDigit(xcoord,50,parseInt(hour/10),context);
+                xcoord+=2*(radius+1)*7+20;
+                renderDigit(xcoord,50,parseInt(hour%10),context);
+                xcoord+=2*(radius+1)*7;
+                renderDigit(xcoord,50,10,context);
+                xcoord+=2*(radius+1)*7;
+                renderDigit(xcoord,50,parseInt(minute/10),context);
+                xcoord+=2*(radius+1)*7+20;
+                renderDigit(xcoord,50,parseInt(minute%10),context);
+                xcoord+=2*(radius+1)*7;
+                renderDigit(xcoord,50,10,context);
+                xcoord+=2*(radius+1)*7;
+                renderDigit(xcoord,50,parseInt(second/10),context);
+                xcoord+=2*(radius+1)*7+20;
+                renderDigit(xcoord,50,parseInt(second%10),context);
+                for(i=0;i<balls.length;i++){
+                    context.beginPath();
+                    context.arc(balls[i].x,balls[i].y,radius,0,2*Math.PI);
+                    context.closePath();
+                    context.fillStyle=balls[i].color;
+                    context.fill();
+                }
+            }
+            function renderDigit(x,y,n,context){
+                var myFillStyle=Object.create(FillStyle);
+                for (i=0;i<digit[n].length;i++){
+                    for(j=0;j<digit[n][i].length;j++){
+                        if(digit[n][i][j]==1){
+                            context.beginPath();
+                            context.arc(x+2*(radius+1)*(j+1),y+2*(radius+1)*(i+1),radius,0,2*Math.PI);
+                            context.closePath();
+                            
+                            myFillStyle.changeX();
+                            context.fillStyle=myFillStyleStr;
+                            context.fill();
+                            
+                        }
+                        
+                        myFillStyle.changeY();
+                        context.fillStyle=myFillStyleStr;
+                    }
+                }
+            }
+            function addBall(x,y,n){
+                //console.log(x);
+                for (i=0;i<digit[n].length;i++){
+                    for(j=0;j<digit[n][i].length;j++){
+                        if(digit[n][i][j]==1){
+                            var aBall = {
+                                x:x+j*2*(radius+1)+(radius+1),
+                                y:y+i*2*(radius+1)+(radius+1),
+                                gravity:1.5+Math.random(),
+                                vx:Math.pow( -1 , Math.ceil( Math.random()*1000 ) ) * 4,
+                                vy:-3-Math.random()*2,
+                                color: colors[ Math.floor( Math.random()*colors.length ) ],
+                                bounce:0
+                            } 
+                            balls.push(aBall);
+                        }
+                    }
+                }
+            }
+            function update(){
+                var nextDate=new Date();
+                var nextHour=nextDate.getHours();
+                var nextMinute=nextDate.getMinutes();
+                var nextSecond=nextDate.getSeconds();
+                var xcoord=50;
+                if(nextDate!=curDate){
+                    if(parseInt(nextHour/10)!=parseInt(curHour/10)){
+                        addBall(xcoord,50,parseInt(nextHour/10));
+                    }
+                    xcoord+=2*(radius+1)*7+20;
+                    if(nextHour%10!=curHour%10){
+                        addBall(xcoord,50,parseInt(nextHour%10));
+                        
+                    }
+                    xcoord+=2*(radius+1)*7+2*(radius+1)*7;
+                    if(parseInt(nextMinute/10)!=parseInt(curMinute/10)){
+                        addBall(xcoord,50,parseInt(nextMinute/10));
+                        
+                    }
+                    xcoord+=2*(radius+1)*7+20;
+                    if(nextMinute%10!=curMinute%10){
+                        addBall(xcoord,50,parseInt(nextMinute%10));
+                        
+                    }
+                    xcoord+=2*(radius+1)*7+2*(radius+1)*7;
+                    if(parseInt(nextSecond/10)!=parseInt(curSecond/10)){
+                        addBall(xcoord,50,parseInt(nextSecond/10));
+                        
+                    }
+                    xcoord+=2*(radius+1)*7+20;
+                    if(nextSecond%10!=curSecond%10){
+                        addBall(xcoord,50,parseInt(nextSecond%10));
+                    }
+                }
+                curDate=nextDate;
+                curHour=nextHour;
+                curMinute=nextMinute;
+                curSecond=nextSecond;
+                updateBalls();
+            }
+            function updateBalls(){
+                for(i=0;i<balls.length;i++){
+                    balls[i].x-=balls[i].vx;
+                    balls[i].y+=balls[i].vy;
+                    balls[i].vy+=balls[i].gravity;
+                    if(balls[i].y+radius>=500){
+                        balls[i].y=500-radius;
+                        balls[i].vy=balls[i].vy*(-1/2);
+                        if(balls[i].bounce>=10){
+                            balls[i].vy=0;
+                        }
+                        balls[i].bounce+=1;
+                    }
+                    
+                }
+                var inside=0;
+                for(i=0;i<balls.length;i++){
+                    if(balls[i].x>0&&balls[i].x<1024-radius){
+                        balls[inside++]=balls[i];
+                    }
+                }
+                while(inside<balls.length){
+                    balls.pop();
+                }
+            }
+        </script>
+        
+    </body>
+</html>
